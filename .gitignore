@@ -8,3 +8,4 @@ site/uploads/obras/*
 !site/uploads/.htaccess
 .DS_Store
 _antigo/
+backup-local/
