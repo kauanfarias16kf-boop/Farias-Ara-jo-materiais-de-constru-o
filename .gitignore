@@ -7,3 +7,4 @@ site/uploads/obras/*
 !site/uploads/*/.gitkeep
 !site/uploads/.htaccess
 .DS_Store
+_antigo/
