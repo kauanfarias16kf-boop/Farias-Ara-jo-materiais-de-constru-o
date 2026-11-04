@@ -27,12 +27,12 @@ if ($fech) {
     }
 } else {
     foreach (folha($ini, $fim) as $l) {
-        $l['parcelas_aqui'] = parcelas_propostas((int)$l['id']);
+        $l['parcelas_aqui'] = $l['dias'] > 0 ? parcelas_propostas((int)$l['id']) : [];
         $l['descontos'] = array_sum(array_map(fn($p) => (float)$p['valor'], $l['parcelas_aqui']));
         $l['liquido'] = round($l['bruto'] + $l['extras'] - $l['vales'] - $l['descontos'], 2);
         $l['funcionario_id'] = $l['id'];
         $l['chave'] = 'f' . $l['id'];
-        if ($l['dias'] > 0 || $l['vales'] > 0 || $l['descontos'] > 0) $linhas[] = $l;
+        if ($l['dias'] > 0 || $l['vales'] > 0 || $l['extras'] > 0) $linhas[] = $l;
     }
     usort($linhas, fn($a, $b) => $b['bruto'] <=> $a['bruto']);
 }

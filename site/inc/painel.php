@@ -244,7 +244,9 @@ function fechar_periodo(string $ini, string $fim, array $escolhidas): int
     $n = 0;
     foreach (folha($ini, $fim) as $l) {
         $desc = 0.0; $det = [];
-        foreach (parcelas_propostas((int)$l['id']) as $p) {
+        // sem dia trabalhado no período, não há folha nem desconto de parcela
+        if ($l['dias'] <= 0 && $l['vales'] <= 0 && $l['extras'] <= 0) continue;
+        foreach (($l['dias'] > 0 ? parcelas_propostas((int)$l['id']) : []) as $p) {
             if (!in_array((int)$p['id'], $escolhidas, true)) continue;
             $desc += (float)$p['valor'];
             $det[] = brl((float)$p['valor']) . ' · ' . ordinal((int)$p['numero']) . ' parcela ' . $p['descricao'];

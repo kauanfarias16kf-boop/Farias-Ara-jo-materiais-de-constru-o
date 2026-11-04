@@ -60,10 +60,10 @@ if ($fech) {
 } else {
     $linhas = [];
     foreach (folha($ini, $fim) as $l) {
-        $l['propostas'] = parcelas_propostas((int)$l['id']);
+        $l['propostas'] = $l['dias'] > 0 ? parcelas_propostas((int)$l['id']) : [];
         $l['descontos'] = array_sum(array_map(fn($p) => (float)$p['valor'], $l['propostas']));
         $l['liquido'] = round($l['bruto'] + $l['extras'] - $l['vales'] - $l['descontos'], 2);
-        if ($l['dias'] > 0 || $l['vales'] > 0 || $l['descontos'] > 0) $linhas[] = $l;
+        if ($l['dias'] > 0 || $l['vales'] > 0 || $l['extras'] > 0) $linhas[] = $l;
     }
 }
 $tot = ['dias' => 0, 'bruto' => 0, 'extras' => 0, 'vales' => 0, 'descontos' => 0, 'liquido' => 0];
@@ -119,7 +119,7 @@ topo('Fechamento ' . quinzena_rotulo($ini, $fim), 'fechamento', $u);
           <?php if ($l['vales'] > 0): ?><div class="pq"><?= brl((float)$l['vales']) ?> já pago (vale)</div><?php endif ?>
           <?php if (!$l['propostas'] && $l['vales'] <= 0): ?><span class="pq">Nenhum</span><?php endif ?>
         <?php endif ?></td>
-      <td class="dir forte" style="font-size:17px"><?= brl((float)$l['liquido']) ?></td>
+      <td class="dir forte" style="font-size:17px;<?= $l['liquido'] < 0 ? 'color:var(--erro)' : '' ?>"><?= brl((float)$l['liquido']) ?><?= $l['liquido'] < 0 ? '<div class="pq" style="color:var(--erro)">desconto maior que o ganho</div>' : '' ?></td>
       <td class="nao-imprime"><div class="acoes" style="flex-wrap:nowrap">
         <?php if ($fech):
           $msg = "Olá, $primeiro! Folha de " . quinzena_rotulo($ini, $fim) . ":\n" . dias_br((float)$l['dias']) . ' diárias: ' . brl($bruto) .
