@@ -105,7 +105,7 @@ topo('Pedidos', 'pedidos', $u);
   <thead><tr><th>Nome</th><th>Serviço</th><th class="esconde-cel">Cidade</th><th class="esconde-cel">Data</th><th>Situação</th></tr></thead>
   <tbody>
   <?php foreach ($lista as $p): ?>
-    <tr><td><a class="linha" href="?id=<?= $p['id'] ?>"><?= h($p['nome']) ?></a><div class="pq"><?= h($p['whatsapp']) ?></div></td><td><?= h($p['servico']) ?></td><td class="esconde-cel"><?= h($p['cidade']) ?></td><td class="esconde-cel pq"><?= data_br($p['criado_em']) ?></td><td><?= rotulo_status($p['status']) ?></td></tr>
+    <tr><td><a class="pessoa-linha" href="?id=<?= $p['id'] ?>" style="text-decoration:none;color:var(--t1)"><?= avatar($p['nome']) ?><div><b><?= h($p['nome']) ?></b><span><?= h($p['whatsapp']) ?></span></div></a></td><td><?= h($p['servico']) ?></td><td class="esconde-cel"><?= h($p['cidade']) ?></td><td class="esconde-cel pq"><?= data_br($p['criado_em']) ?></td><td><?= rotulo_status($p['status']) ?></td></tr>
   <?php endforeach ?>
   </tbody>
 </table></div>

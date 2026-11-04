@@ -104,7 +104,7 @@ if ($id !== '') {
     topo($f['id'] ? $f['nome'] : 'Novo funcionário', 'equipe', $u);
     ?>
     <a href="equipe.php" class="voltar">← Todos os funcionários</a>
-    <div class="cab" style="margin-top:12px"><div><?php if ($f['id']): ?><span class="kicker"><?= h($f['funcao']) ?></span><?php endif ?><h1><?= $f['id'] ? h($f['nome']) : 'Novo funcionário' ?></h1></div>
+    <div class="cab" style="margin-top:12px"><div class="pessoa-linha"><?php if ($f['id']): ?><?= avatar($f['nome'], 'g') ?><?php endif ?><div><?php if ($f['id']): ?><span class="kicker"><?= h($f['funcao']) ?></span><?php endif ?><h1><?= $f['id'] ? h($f['nome']) : 'Novo funcionário' ?></h1></div></div>
       <?php if ($f['id'] && $f['whatsapp']): ?><a class="btn btn-zap" href="<?= h(whats_link($f['whatsapp'])) ?>" target="_blank" rel="noopener">Chamar no WhatsApp</a><?php endif ?></div>
     <?php if ($f['id']):
         $q = array_values(array_filter(folha($qi, $qf), fn($l) => (int)$l['id'] === (int)$f['id']))[0] ?? ['dias' => 0, 'bruto' => 0, 'extras' => 0, 'vales' => 0, 'liquido' => 0];
@@ -210,7 +210,7 @@ topo('Funcionários', 'equipe', $u);
   <thead><tr><th>Nome</th><th class="esconde-cel">Função</th><th class="dir">Diária</th><th class="dir">Dias na quinzena</th><th class="dir">A receber</th></tr></thead>
   <tbody>
   <?php foreach ($lista as $f): $q = $folha[$f['id']] ?? ['dias' => 0, 'liquido' => 0]; ?>
-    <tr><td><a class="linha" href="?id=<?= $f['id'] ?>"><?= h($f['nome']) ?></a><?= $f['ativo'] ? '' : ' <span class="st">Saiu</span>' ?><div class="pq"><?= h($f['whatsapp']) ?></div></td><td class="esconde-cel"><?= h($f['funcao']) ?></td><td class="dir"><?= brl((float)$f['diaria']) ?></td><td class="dir forte"><?= dias_br((float)$q['dias']) ?></td><td class="dir forte"><?= brl((float)$q['liquido']) ?></td></tr>
+    <tr><td><a class="pessoa-linha" href="?id=<?= $f['id'] ?>" style="text-decoration:none;color:var(--t1)"><?= avatar($f['nome']) ?><div><b><?= h($f['nome']) ?></b><span><?= h($f['whatsapp'] ?: $f['funcao']) ?></span></div></a><?= $f['ativo'] ? '' : ' <span class="st">Saiu</span>' ?></td><td class="esconde-cel"><?= h($f['funcao']) ?></td><td class="dir"><?= brl((float)$f['diaria']) ?></td><td class="dir forte"><?= dias_br((float)$q['dias']) ?></td><td class="dir forte"><?= brl((float)$q['liquido']) ?></td></tr>
   <?php endforeach ?>
   </tbody>
 </table></div>

@@ -30,7 +30,7 @@ topo('Entrar', '', null);
 ?>
 <div class="login">
   <form class="cartao" method="post">
-    <img src="/assets/img/logo.webp" alt="Farias Araújo Construções Pré Moldadas" width="170" height="111">
+    <img src="/assets/img/logo-escuro.webp" alt="Farias Araújo Construções Pré Moldadas" width="170" height="111">
     <h1 style="text-align:center">Painel da equipe</h1>
     <p class="sub" style="text-align:center">Pedidos, obras, orçamentos e galeria.</p>
     <?php if ($erro): ?><div class="aviso aviso-erro" role="alert"><?= h($erro) ?></div><?php endif ?>

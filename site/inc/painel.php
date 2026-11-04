@@ -49,13 +49,13 @@ function topo(string $titulo, string $ativo = '', ?array $u = null): void
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#121316">
+<meta name="theme-color" content="#17181b">
 <title><?= h($titulo) ?> · Painel Farias Araújo</title>
 <script>try{var t=localStorage.getItem('fa-tema');if(t)document.documentElement.dataset.tema=t}catch(e){}</script>
 <link rel="icon" href="/assets/img/logo-marca.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/painel.css?v=2">
+<link rel="stylesheet" href="/assets/css/painel.css?v=3">
 </head>
 <body class="painel<?= $u ? ' com-menu' : '' ?>">
 <a class="pular" href="#main">Pular para o conteúdo</a>
@@ -94,7 +94,7 @@ function rodape(): void
 {
     ?>
 </main>
-<script src="/assets/js/painel.js?v=2" defer></script>
+<script src="/assets/js/painel.js?v=3" defer></script>
 </body>
 </html>
 <?php
@@ -261,4 +261,13 @@ function fechar_periodo(string $ini, string $fim, array $escolhidas): int
     if (!$n) { $pdo->rollBack(); return 0; }
     $pdo->commit();
     return $fid;
+}
+
+/** Iniciais coloridas de uma pessoa (a cor é sempre a mesma para o mesmo nome). */
+function avatar(string $nome, string $tam = ''): string
+{
+    $partes = preg_split('/\s+/', trim($nome)) ?: [''];
+    $ini = mb_strtoupper(mb_substr($partes[0], 0, 1) . (count($partes) > 1 ? mb_substr(end($partes), 0, 1) : mb_substr($partes[0], 1, 1)));
+    $cor = (crc32(mb_strtolower(trim($nome))) % 6) + 1;
+    return '<span class="avatar ' . $tam . ' av' . $cor . '" aria-hidden="true">' . h($ini) . '</span>';
 }

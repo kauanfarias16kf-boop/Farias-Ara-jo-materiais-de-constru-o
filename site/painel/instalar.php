@@ -28,7 +28,7 @@ topo('Primeiro acesso', '', null);
 ?>
 <div class="login">
   <form class="cartao" method="post">
-    <img src="/assets/img/logo.webp" alt="Farias Araújo Construções Pré Moldadas" width="170" height="111">
+    <img src="/assets/img/logo-escuro.webp" alt="Farias Araújo Construções Pré Moldadas" width="170" height="111">
     <h1 style="text-align:center">Primeiro acesso</h1>
     <p class="sub" style="text-align:center">Crie a senha de cada sócio. Isso aparece uma vez só.</p>
     <?php if ($erro): ?><div class="aviso aviso-erro" role="alert"><?= h($erro) ?></div><?php endif ?>

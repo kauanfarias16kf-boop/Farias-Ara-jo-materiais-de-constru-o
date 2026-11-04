@@ -108,7 +108,7 @@ topo('Fechamento ' . quinzena_rotulo($ini, $fim), 'fechamento', $u);
     $primeiro = explode(' ', trim($l['nome']))[0];
     $bruto = (float)$l['bruto'] + (float)$l['extras'];
   ?>
-    <tr id="i<?= $l['id'] ?>"><td><b><?= h($l['nome']) ?></b><?= !empty($l['pix']) ? '<div class="pq">Pix: ' . h($l['pix']) . '</div>' : '' ?></td>
+    <tr id="i<?= $l['id'] ?>"><td><div class="pessoa-linha"><?= avatar($l['nome']) ?><div><b><?= h($l['nome']) ?></b><span><?= !empty($l['pix']) ? 'Pix: ' . h($l['pix']) : h($l['funcao']) ?></span></div></div></td>
       <td class="esconde-cel"><?= h($l['funcao']) ?></td>
       <td class="dir"><?= dias_br((float)$l['dias']) ?></td>
       <td class="dir"><?= brl($bruto) ?><?= $l['extras'] > 0 ? '<div class="pq">inclui ' . brl((float)$l['extras']) . ' de extras</div>' : '' ?></td>

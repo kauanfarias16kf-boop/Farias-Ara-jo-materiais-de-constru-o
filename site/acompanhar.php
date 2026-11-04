@@ -67,7 +67,7 @@ $circ = 2 * M_PI * 52;
 </head>
 <body>
 <main class="acomp" id="main">
-  <header><a href="/"><img src="/assets/img/logo.webp" alt="Farias Araújo Construções Pré Moldadas" width="120" height="78"></a><span class="kicker">Acompanhe sua obra</span></header>
+  <header><a href="/"><img src="/assets/img/logo-escuro.webp" alt="Farias Araújo Construções Pré Moldadas" width="120" height="78"></a><span class="kicker">Acompanhe sua obra</span></header>
 
   <?php if (!$obra): ?>
     <form class="cartao" method="get" style="max-width:460px;margin:30px auto">
