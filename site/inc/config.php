@@ -21,6 +21,8 @@ define('FA_SERVICOS', [
     'Casa pré moldada',
     'Base e fundação',
     'Estruturação',
+    'Construção de galpão',
+    'Reforma',
     'Construção civil em geral',
     'Serviço elétrico',
     'Serviços hidráulicos',
