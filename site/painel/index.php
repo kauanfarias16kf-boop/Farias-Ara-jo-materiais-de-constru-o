@@ -17,6 +17,10 @@ $st = $pdo->prepare('SELECT COALESCE(SUM(valor),0) FROM despesas WHERE data BETW
 $despQ = (float)$st->fetchColumn();
 $st = $pdo->prepare('SELECT categoria, SUM(valor) v FROM despesas WHERE data BETWEEN ? AND ? GROUP BY categoria ORDER BY v DESC'); $st->execute([$qi, $qf]);
 $porCat = $st->fetchAll();
+// mão de obra do período entra como a primeira categoria do gráfico
+$st = $pdo->prepare('SELECT COALESCE(SUM(fracao * valor + extra),0) FROM diarias WHERE data BETWEEN ? AND ?'); $st->execute([$qi, $qf]);
+$maoObra = (float)$st->fetchColumn();
+$gastos = array_merge($maoObra > 0 ? [['categoria' => 'Mão de obra', 'v' => $maoObra, 'mo' => true]] : [], $porCat);
 $st = $pdo->prepare('SELECT data, SUM(fracao) n, SUM(fracao * valor + extra) v FROM diarias WHERE data BETWEEN ? AND ? GROUP BY data'); $st->execute([$qi, $qf]);
 $porDia = [];
 foreach ($st->fetchAll() as $r) $porDia[$r['data']] = $r;
@@ -50,7 +54,7 @@ $maxN = max(1, $ativos, ...array_map(fn($d) => (float)($porDia[$d]['n'] ?? 0), $
 $W = 600; $H = 190; $topo = 16; $base = 160; $passo = $W / count($diasQ); $larg = min(26, $passo - 8);
 $escala = ($base - $topo) / $maxN;
 $guias = array_unique([0, (int)ceil($maxN / 2), (int)ceil($maxN)]);
-$maxCat = max(1, ...array_map(fn($c) => (float)$c['v'], $porCat ?: [['v' => 1]]));
+$maxCat = max(1, ...array_map(fn($c) => (float)$c['v'], $gastos ?: [['v' => 1]]));
 
 topo('Início', 'index', $u);
 ?>
@@ -101,11 +105,11 @@ topo('Início', 'index', $u);
     </div>
   </section>
   <section class="cartao">
-    <div class="cab" style="margin-bottom:14px"><div><h2 style="margin:0">Despesas por categoria</h2><span class="pq">Período <?= quinzena_rotulo($qi, $qf) ?></span></div></div>
-    <?php if (!$porCat): ?><div class="vazio" style="padding:20px 0"><strong>Nada lançado ainda</strong><a class="btn btn-pq" href="despesas.php">Lançar despesa</a></div><?php endif ?>
+    <div class="cab" style="margin-bottom:14px"><div><h2 style="margin:0">Gastos por categoria</h2><span class="pq">Mão de obra e despesas · <?= quinzena_rotulo($qi, $qf) ?></span></div></div>
+    <?php if (!$gastos): ?><div class="vazio" style="padding:20px 0"><strong>Nada lançado ainda</strong><a class="btn btn-pq" href="despesas.php">Lançar despesa</a></div><?php endif ?>
     <ul class="hbarras">
-      <?php foreach (array_slice($porCat, 0, 6) as $c): ?>
-        <li><span><?= h($c['categoria']) ?></span><b><?= brl((float)$c['v']) ?></b><span class="trilho"><i style="width:<?= round($c['v'] / $maxCat * 100) ?>%"></i></span></li>
+      <?php foreach (array_slice($gastos, 0, 7) as $c): ?>
+        <li><span><?= !empty($c['mo']) ? '<a href="diarias.php?v=grade" style="color:var(--t1);font-weight:800">Mão de obra</a>' : h($c['categoria']) ?></span><b><?= brl((float)$c['v']) ?></b><span class="trilho"><i style="width:<?= max(1, round($c['v'] / $maxCat * 100)) ?>%"></i></span></li>
       <?php endforeach ?>
     </ul>
   </section>

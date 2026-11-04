@@ -32,7 +32,7 @@ define('FA_SERVICOS', [
 
 define('FA_ETAPAS_PADRAO', ['Base e fundação', 'Pilares', 'Vigas e estrutura', 'Cobertura', 'Elétrica e hidráulica', 'Revestimento e piso', 'Pintura', 'Entrega']);
 
-define('FA_CATEGORIAS', ['Combustível', 'Café da manhã', 'Almoço', 'Material', 'Transporte e frete', 'Aluguel de equipamento', 'Ferramentas', 'Cartões e divulgação', 'Taxas e documentos', 'Outros']);
+define('FA_CATEGORIAS', ['Combustível', 'Café da manhã', 'Almoço', 'Transporte e frete', 'Aluguel de equipamento', 'Ferramentas', 'Cartões e divulgação', 'Taxas e documentos', 'Outros']);
 // Ciclo de pagamento: 15 dias corridos contados a partir desta data (08/09 a 22/09, 23/09 a 07/10...).
 define('FA_CICLO_INICIO', '2026-09-08');
 define('FA_CICLO_DIAS', 15);

@@ -126,6 +126,12 @@
     });
   });
 
+  // telas do dia (início e diárias) se atualizam sozinhas na virada da meia-noite
+  if (/\/painel\/(index\.php|diarias\.php)?$/.test(location.pathname) && !/[?&]d=/.test(location.search)) {
+    const agora = new Date(), meia = new Date(agora); meia.setHours(24, 0, 5, 0);
+    setTimeout(() => { if (!document.querySelector('.pessoa input:focus, .pessoa select:focus')) location.reload(); }, meia - agora);
+  }
+
   // Confirmação nomeada antes de apagar
   document.addEventListener('submit', e => {
     const f = e.target;

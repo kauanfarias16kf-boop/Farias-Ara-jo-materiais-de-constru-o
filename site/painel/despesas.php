@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $v = [
         'data' => $data_ok($_POST['data'] ?? '') ? $_POST['data'] : date('Y-m-d'),
         'obra_id' => ((int)($_POST['obra_id'] ?? 0)) ?: null,
-        'categoria' => in_array($_POST['categoria'] ?? '', FA_CATEGORIAS, true) ? $_POST['categoria'] : 'Outros',
+        'categoria' => (in_array($_POST['categoria'] ?? '', FA_CATEGORIAS, true) || ($id && ($_POST['categoria'] ?? '') === ($_POST['cat_antiga'] ?? null))) ? $_POST['categoria'] : 'Outros',
         'descricao' => mb_substr(trim((string)($_POST['descricao'] ?? '')), 0, 200),
         'valor' => num_br((string)($_POST['valor'] ?? '')),
         'forma' => in_array($_POST['forma'] ?? '', FA_FORMAS, true) ? $_POST['forma'] : null,
@@ -63,7 +63,7 @@ arsort($porCat); arsort($porObra);
 $obrasTodas = $pdo->query('SELECT id, titulo FROM obras ORDER BY status = \'concluida\', id DESC')->fetchAll(PDO::FETCH_KEY_PAIR);
 $obrasAtivas = $pdo->query("SELECT id, titulo FROM obras WHERE status != 'concluida' ORDER BY status = 'em_andamento' DESC, id DESC")->fetchAll(PDO::FETCH_KEY_PAIR);
 
-$ed = ['id' => 0, 'data' => date('Y-m-d'), 'obra_id' => array_key_first($obrasAtivas), 'categoria' => 'Material', 'descricao' => '', 'valor' => '', 'forma' => 'Pix'];
+$ed = ['id' => 0, 'data' => date('Y-m-d'), 'obra_id' => array_key_first($obrasAtivas), 'categoria' => 'Combustível', 'descricao' => '', 'valor' => '', 'forma' => 'Pix'];
 if ($eid = (int)($_GET['editar'] ?? 0)) {
     $s = $pdo->prepare('SELECT * FROM despesas WHERE id = ?'); $s->execute([$eid]);
     $ed = $s->fetch() ?: $ed;
@@ -77,7 +77,7 @@ topo('Despesas', 'despesas', $u);
   <?= campo_csrf() ?><input type="hidden" name="id" value="<?= (int)$ed['id'] ?>"><input type="hidden" name="volta" value="<?= h($query) ?>">
   <div class="grade g4">
     <div class="campo"><label for="valor">Valor (R$)</label><input id="valor" name="valor" inputmode="decimal" required placeholder="0,00" value="<?= $ed['valor'] !== '' ? number_format((float)$ed['valor'], 2, ',', '.') : '' ?>" style="font-size:20px;font-weight:700" <?= $ed['id'] ? '' : 'autofocus' ?>></div>
-    <div class="campo"><label for="categoria">Categoria</label><select id="categoria" name="categoria"><?= opcoes(FA_CATEGORIAS, $ed['categoria']) ?></select></div>
+    <div class="campo"><label for="categoria">Categoria</label><select id="categoria" name="categoria"><?= opcoes(in_array($ed['categoria'], FA_CATEGORIAS, true) ? FA_CATEGORIAS : [...FA_CATEGORIAS, $ed['categoria']], $ed['categoria']) ?></select><input type="hidden" name="cat_antiga" value="<?= h($ed['categoria']) ?>"></div>
     <div class="campo"><label for="obra_id">Obra</label><select id="obra_id" name="obra_id"><option value="">Geral, sem obra</option><?= opcoes($ed['id'] ? $obrasTodas : $obrasAtivas, (string)$ed['obra_id'], true) ?></select></div>
     <div class="campo"><label for="data">Data</label><input id="data" type="date" name="data" value="<?= h($ed['data']) ?>" required></div>
     <div class="campo" style="grid-column:span 2"><label for="descricao">O que foi</label><input id="descricao" name="descricao" value="<?= h($ed['descricao']) ?>" placeholder="Ex.: 20 sacos de cimento, loja do Zé"></div>
