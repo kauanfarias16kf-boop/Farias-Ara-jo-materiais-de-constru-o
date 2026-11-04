@@ -1,0 +1,9 @@
+# dados e segredos nunca vão para o repositório
+fa-dados/
+hostgator.env
+review/
+site/uploads/galeria/*
+site/uploads/obras/*
+!site/uploads/*/.gitkeep
+!site/uploads/.htaccess
+.DS_Store

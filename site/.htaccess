@@ -1,0 +1,12 @@
+Options -Indexes
+DirectoryIndex index.html index.php
+<FilesMatch "\.(sqlite|sqlite-wal|sqlite-shm|db|env|md|log|sh|ps1)$">
+  Require all denied
+</FilesMatch>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp "access plus 30 days"
+  ExpiresByType video/mp4 "access plus 30 days"
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+</IfModule>
