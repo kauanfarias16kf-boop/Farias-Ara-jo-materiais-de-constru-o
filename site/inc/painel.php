@@ -131,12 +131,13 @@ function total_orcamento(int $id): float
 /** Período de pagamento (ciclo de 15 dias corridos) que contém a data. */
 function quinzena(string $data): array
 {
-    $t = strtotime($data) ?: time();
-    $base = strtotime(FA_CICLO_INICIO);
-    $n = (int)floor((($t - $base) / 86400) / FA_CICLO_DIAS);
-    $ini = strtotime('+' . ($n * FA_CICLO_DIAS) . ' days', $base);
-    $fim = strtotime('+' . (FA_CICLO_DIAS - 1) . ' days', $ini);
-    return [date('Y-m-d', $ini), date('Y-m-d', $fim)];
+    $d = DateTimeImmutable::createFromFormat('!Y-m-d', $data) ?: new DateTimeImmutable('today');
+    $dias = (int)(new DateTimeImmutable(FA_CICLO_INICIO))->diff($d)->format('%r%a');
+    $n = intdiv($dias - ($dias < 0 ? FA_CICLO_DIAS - 1 : 0), FA_CICLO_DIAS);
+    // conta em dias de calendário, para funcionar também nos períodos antes da data base
+    $ini = (new DateTimeImmutable(FA_CICLO_INICIO))->modify(sprintf('%+d days', $n * FA_CICLO_DIAS));
+    $fim = $ini->modify('+' . (FA_CICLO_DIAS - 1) . ' days');
+    return [$ini->format('Y-m-d'), $fim->format('Y-m-d')];
 }
 
 function quinzena_rotulo(string $inicio, string $fim): string
