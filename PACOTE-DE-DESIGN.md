@@ -30,6 +30,10 @@ Fontes: Reclame Aqui (casas pré moldadas e pré fabricadas), TJDFT (obras aband
 
 UMA chamada para ação: **Pedir orçamento** (formulário que cai no painel + WhatsApp).
 
+## Revisão de texto (pedido do cliente)
+
+Todo o texto do site foi reescrito no `site/index.html`, que passa a ser a fonte do texto final. Regras da revisão: só promessas confirmadas (pagamento por etapa, fotos da obra no celular, WhatsApp dos donos, orçamento item por item, Brasília e entorno, serviços do cartão), nenhum número inventado, nada de "impecável", "alto padrão" ou "primeira linha". Entraram: selos no topo, a faixa "Antes de escolher quem vai construir, faça estas quatro perguntas", a pergunta "Vocês fazem só uma parte da obra?" e o botão flutuante de WhatsApp.
+
 ## 1. A premissa da marca
 
 **No prumo.** Prumo é o fio com peso que o pedreiro solta para conferir se a parede está reta. A Farias Araújo vende obra no prumo: estrutura reta, prazo reto e conversa reta. Cada seção prova uma dessas três retas, e o site inteiro é atravessado por um fio de prumo dourado.

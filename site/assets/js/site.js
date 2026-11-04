@@ -50,7 +50,7 @@
     ioEntrada.unobserve(e.target);
     setTimeout(() => e.target.classList.add('entrou'), 1800);   // aposenta os atrasos de escalonamento
   }), { rootMargin: '0px 0px -12% 0px' });
-  $$('.secao').forEach(s => ioEntrada.observe(s));
+  $$('.secao, .pergunte').forEach(s => ioEntrada.observe(s));
 
   /* ---------- HERO: motor de scroll ---------- */
   const GATES = [
@@ -131,6 +131,8 @@
     if (rafId === null && heroOnScreen) rafId = requestAnimationFrame(tick);
   }
   new IntersectionObserver(es => { heroOnScreen = es[0].isIntersecting; if (heroOnScreen && scrubOn) onScroll(); }).observe(hero);
+  // o WhatsApp flutuante aparece só depois do topo
+  new IntersectionObserver(es => document.body.classList.toggle('passou-topo', !es[0].isIntersecting), { rootMargin: '-60% 0px 0px 0px' }).observe(hero);
 
   // rampa única de carregamento da faixa um, que passa o bastão para o scroll
   function rampaCarga() {
@@ -245,7 +247,7 @@
     const t = e.target.dataset.cota || '00 · TOPO';
     if (t !== cotaTxt) { cotaTxt = t; cotaEl.textContent = t; }
   }), { rootMargin: '-48% 0px -48% 0px' });
-  [hero, ...$$('.secao')].forEach(s => ioCota.observe(s));
+  [hero, ...$$('.secao, .pergunte')].forEach(s => ioCota.observe(s));
 
   /* ---------- momento interativo: segure para aprumar ---------- */
   const bancada = $('#bancada-wrap');
@@ -288,7 +290,7 @@
     leituraBox.classList.add('ok');
     $('#segurar-txt').textContent = 'No prumo';
     botao.setAttribute('aria-disabled', 'true');
-    msg.textContent = 'No prumo. É essa a régua de cada etapa da sua obra.';
+    msg.textContent = 'No prumo. É com essa régua que cada etapa da sua obra é conferida.';
     msg.parentElement.classList.add('feito');
     passos.forEach((li, i) => instantaneo ? li.classList.add('aceso') : setTimeout(() => li.classList.add('aceso'), 260 + i * 220));
   }
@@ -312,7 +314,7 @@
   function pinToFinalStates() {
     pinado = true;
     if (!feito) completa(true);
-    $$('.secao').forEach(s => s.classList.add('in', 'entrou'));
+    $$('.secao, .pergunte').forEach(s => s.classList.add('in', 'entrou'));
     if (prumoRaf) { cancelAnimationFrame(prumoRaf); prumoRaf = null; }
     ang = angVel = 0; prumo.style.setProperty('--ang', '0deg');
   }
