@@ -135,13 +135,13 @@
         $$('[data-obra]', p3d).forEach(b => b.setAttribute('aria-pressed', String(b === a)));
         $$('[data-txt-obra]', p3d).forEach(t => (t.hidden = t.dataset.txtObra !== a.dataset.obra));
         poster.src = 'assets/img/3d/3d-' + a.dataset.obra + '-p.webp';
-        poster.alt = a.dataset.obra === 'casa' ? 'Ilustração 3D de uma casa pré moldada pronta' : 'Ilustração 3D de um galpão pré moldado pronto';
+        poster.alt = { casa: 'Ilustração 3D de uma casa pré moldada pronta', predio: 'Ilustração 3D de um prédio em estrutura pré moldada', galpao: 'Ilustração 3D de um galpão pré moldado pronto' }[a.dataset.obra];
       }));
     };
     new IntersectionObserver((es, o) => {
       if (!es[0].isIntersecting) return;
       o.disconnect();
-      import('./projeto3d.js?v=6').then(m => { if (!m.iniciaProjeto3D(p3d)) reserva(); }).catch(reserva);
+      import('./projeto3d.js?v=7').then(m => { if (!m.iniciaProjeto3D(p3d)) reserva(); }).catch(reserva);
     }, { rootMargin: '400px 0px' }).observe(p3d);
   }
 

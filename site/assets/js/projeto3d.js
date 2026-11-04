@@ -33,22 +33,24 @@ export function iniciaProjeto3D(caixa, opc = {}) {
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
   }
   const M = {
-    placa: new THREE.MeshStandardMaterial({ color: 0xf3f2ee, roughness: .92 }),
-    estrutura: new THREE.MeshStandardMaterial({ color: 0xdcdad4, roughness: .9 }),
-    base: new THREE.MeshStandardMaterial({ color: 0xd3d1cb, roughness: .95 }),
-    calcada: new THREE.MeshStandardMaterial({ color: 0xe5e3de, roughness: .95 }),
+    // cor de concreto pré moldado: cinza quente, a estrutura um tom abaixo das placas
+    placa: new THREE.MeshStandardMaterial({ color: 0xb4b0a8, roughness: .9 }),
+    estrutura: new THREE.MeshStandardMaterial({ color: 0x9f9b93, roughness: .88 }),
+    pilar: new THREE.MeshStandardMaterial({ color: 0x9f9b93, roughness: .88 }),
+    laje: new THREE.MeshStandardMaterial({ color: 0xaaa69e, roughness: .9 }),
+    base: new THREE.MeshStandardMaterial({ color: 0x8c8982, roughness: .95 }),
+    calcada: new THREE.MeshStandardMaterial({ color: 0xcfccc5, roughness: .95 }),
     vidro: new THREE.MeshStandardMaterial({ color: 0x9aa1a7, roughness: .12, metalness: .35 }),
     esquadria: new THREE.MeshStandardMaterial({ color: 0x5c5f63, roughness: .5, metalness: .2 }),
     porta: new THREE.MeshStandardMaterial({ color: 0xc7c4bd, roughness: .8 }),
-    telha: new THREE.MeshStandardMaterial({ color: 0xecebe7, roughness: .85, map: riscas('#b5b3ad', false), side: THREE.DoubleSide }),
-    chapa: new THREE.MeshStandardMaterial({ color: 0xe9e8e4, roughness: .6, metalness: .1, map: riscas('#b0aea8', true) }),
-    portao: new THREE.MeshStandardMaterial({ color: 0xd6d4cf, roughness: .6, metalness: .15, map: riscas('#a5a39d', true) }),
+    telha: new THREE.MeshStandardMaterial({ color: 0xc9c8c4, roughness: .8, map: riscas('#9c9b97', false), side: THREE.DoubleSide }),
+    chapa: new THREE.MeshStandardMaterial({ color: 0xbfc1c3, roughness: .6, metalness: .1, map: riscas('#b0aea8', true) }),
+    portao: new THREE.MeshStandardMaterial({ color: 0xc4c5c6, roughness: .6, metalness: .15, map: riscas('#a5a39d', true) }),
     metal: new THREE.MeshStandardMaterial({ color: 0x8b8d91, roughness: .5, metalness: .3 }),
-    arvore: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, flatShading: true }),
-    chao: new THREE.MeshStandardMaterial({ color: 0xf1f0ec, roughness: 1 }),
+    chao: new THREE.MeshStandardMaterial({ color: 0xefeeea, roughness: 1 }),
   };
   M.portao.map.repeat.set(28, 1);
-  const linha = new THREE.LineBasicMaterial({ color: 0x3e3f42, transparent: true, opacity: .3 });
+  const linha = new THREE.LineBasicMaterial({ color: 0x3e3f42, transparent: true, opacity: .2 });
 
   /* ---------- estúdio claro ---------- */
   const FUNDO = 0xeeede9;
@@ -116,10 +118,6 @@ export function iniciaProjeto3D(caixa, opc = {}) {
     m.position.set((x1 + x2) / 2, (y1 + y2) / 2, z); m.rotation.z = Math.atan2(y2 - y1, x2 - x1);
     return poe(m, etapa, false);
   }
-  function arvore(x, z, s = 1) {
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(.08 * s, .12 * s, 1.6 * s, 8), M.arvore); t.position.set(x, .8 * s, z); poe(t, 0, false);
-    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25 * s, 1), M.arvore); c.position.set(x, 2.5 * s, z); c.scale.y = 1.15; poe(c, 0, false);
-  }
 
   /* ---------- casa: pilares, placas horizontais e telhado de quatro águas ---------- */
   function casa() {
@@ -164,7 +162,7 @@ export function iniciaProjeto3D(caixa, opc = {}) {
         bloco(lw + .14, .05, .2, M.estrutura, cx, y1 - .03, cz, 5, ry); // peitoril
       }
     });
-    nos.forEach(([x, z]) => bloco(.17, HP + .2, .17, M.estrutura, x, Y0 + (HP + .2) / 2, z, 2));
+    nos.forEach(([x, z]) => bloco(.17, HP + .2, .17, M.pilar, x, Y0 + (HP + .2) / 2, z, 2));
     // arranques de aço deixados na base para os pilares
     nos.forEach(([x, z]) => [-.04, .04].forEach(d => bloco(.025, .55, .025, M.metal, x + d, Y0 + .27, z + d, 1, 0, false)));
 
@@ -189,8 +187,8 @@ export function iniciaProjeto3D(caixa, opc = {}) {
     entre(ex, -ez, ex, ez, .2, .05, M.placa, ye - .08, 4); entre(-ex, -ez, -ex, ez, .2, .05, M.placa, ye - .08, 4);
     bloco(2 * ex, .04, 2 * ez, M.placa, 0, ye - .17, 0, 4, 0, false);
 
-    [[-13, 9, 1.1], [12.5, -8, 1], [-12, -9.5, .9], [14, 7.5, .8]].forEach(([x, z, s]) => arvore(x, z, s));
-    return { cam: [15, 8.5, 19], alvo: [0, 1.9, 0], dist: [12, 45], sol: [-22, 30, 18], sombra: 22 };
+    return { cam: [15, 8.5, 19], alvo: [0, 1.9, 0], dist: [12, 45], sol: [-22, 30, 18], sombra: 22,
+      ficha: [['Dimensões', '12,8 × 8,0 m'], ['Área construída', '102 m²'], ['Pé-direito', '3,0 m'], ['Módulo entre pilares', '1,6 m']] };
   }
 
   /* ---------- galpão: pilares de concreto, tesouras metálicas e telha ---------- */
@@ -201,9 +199,9 @@ export function iniciaProjeto3D(caixa, opc = {}) {
     const zs = []; for (let z = -hz; z <= hz + .01; z += 5) zs.push(z);
     const frente = [-hx, -6.5, -3, 3, 6.5, hx], fundo = [-hx, -5, 0, 5, hx];
     zs.forEach(z => [-hx, hx].forEach(x => bloco(1, .35, 1.1, M.base, x, Y0 + .17, z, 1))); // cálices
-    zs.forEach(z => [-hx, hx].forEach(x => bloco(.4, HP + .6, .5, M.estrutura, x, Y0 + (HP + .6) / 2, z, 2)));
-    frente.slice(1, -1).forEach(x => bloco(.3, HP, .3, M.estrutura, x, Y0 + HP / 2, hz, 2));
-    fundo.slice(1, -1).forEach(x => bloco(.3, HP, .3, M.estrutura, x, Y0 + HP / 2, -hz, 2));
+    zs.forEach(z => [-hx, hx].forEach(x => bloco(.4, HP + .6, .5, M.pilar, x, Y0 + (HP + .6) / 2, z, 2)));
+    frente.slice(1, -1).forEach(x => bloco(.3, HP, .3, M.pilar, x, Y0 + HP / 2, hz, 2));
+    fundo.slice(1, -1).forEach(x => bloco(.3, HP, .3, M.pilar, x, Y0 + HP / 2, -hz, 2));
     [-hx, hx].forEach(x => entre(x, -hz, x, hz, .6, .5, M.estrutura, Y0 + HP + .3, 2)); // viga calha
     [hz, -hz].forEach(z => entre(-hx, z, hx, z, .8, .3, M.estrutura, Y0 + HP + .2, 2));
     // laterais: placas até 4,5 m, faixa de ventilação com venezianas, placas até o topo
@@ -248,11 +246,53 @@ export function iniciaProjeto3D(caixa, opc = {}) {
     // portão e acabamento
     bloco(5.6, 5.4, .1, M.portao, 0, Y0 + 2.7, hz + .12, 5);
     bloco(6.2, .25, .3, M.estrutura, 0, Y0 + 5.55, hz + .12, 5);
-    [[-17, 10, 1.3], [16, -12, 1.2], [-16, -14, 1], [17, 14, 1.1]].forEach(([x, z, s]) => arvore(x, z, s));
-    return { cam: [30, 13, 40], alvo: [0, 3.8, 1], dist: [22, 85], sol: [-30, 42, 30], sombra: 34 };
+    return { cam: [30, 13, 40], alvo: [0, 3.8, 1], dist: [22, 85], sol: [-30, 42, 30], sombra: 34,
+      ficha: [['Dimensões', '20 × 30 m'], ['Área coberta', '600 m²'], ['Vão livre', '20 m'], ['Pé-direito', '7,2 m']] };
   }
 
-  const OBRAS = { casa, galpao };
+
+  /* ---------- prédio: pilares inteiros, vigas, lajes alveolares e painéis de fachada ---------- */
+  function predio() {
+    const B = 6, hx = 9, hz = 6, Y0 = .3, PD = 3, NP = 4, H = NP * PD, PLAT = .9;
+    const xs = [-9, -3, 3, 9], zs = [-6, 0, 6];
+    bloco(2 * hx + 4, .08, 2 * hz + 4, M.calcada, 0, .04, 0, 5);
+    bloco(2 * hx + .6, Y0, 2 * hz + .6, M.base, 0, Y0 / 2, 0, 1);
+    xs.forEach(x => zs.forEach(z => bloco(1.3, .35, 1.3, M.base, x, Y0 + .17, z, 1))); // blocos de fundação
+    xs.forEach(x => zs.forEach(z => bloco(.4, H + PLAT, .4, M.pilar, x, Y0 + (H + PLAT) / 2, z, 2)));
+    // vigas e lajes alveolares de cada andar (o último nível é a cobertura)
+    for (let k = 1; k <= NP; k++) {
+      const et = k < NP ? 2 : 4, yl = Y0 + k * PD;
+      zs.forEach(z => entre(-hx, z, hx, z, .6, .35, M.estrutura, yl - .5, et));
+      [-hx, hx].forEach(x => entre(x, -hz, x, hz, .6, .35, M.estrutura, yl - .5, et));
+      [[-6, 0], [0, 6]].forEach(([z1, z2]) => {
+        for (let i = 0; i < 15; i++) bloco(1.18, .2, B - .02, M.laje, -hx + .6 + i * 1.2, yl - .1, (z1 + z2) / 2, et);
+      });
+    }
+    // fachada: frente e fundo com faixa de janelas, laterais fechadas
+    for (let f = 0; f < NP; f++) {
+      const y0 = Y0 + f * PD;
+      [hz, -hz].forEach(z => xs.slice(0, -1).forEach((x, i) => {
+        const a = x + .22, b = xs[i + 1] - .22, cx = (x + xs[i + 1]) / 2, loja = f === 0 && z > 0;
+        if (!loja) entre(a, z, b, z, 1.08, .16, M.placa, y0 + .55, 3);
+        entre(a, z, b, z, .68, .16, M.placa, y0 + 2.65, 3);
+        const v1 = loja ? 0 : 1.1, v2 = 2.3, hv = v2 - v1;
+        bloco(b - a, hv, .04, M.vidro, cx, y0 + v1 + hv / 2, z, 5, 0, false);
+        for (let m = 0; m <= 4; m++) bloco(.05, hv, .1, M.esquadria, a + m * (b - a) / 4, y0 + v1 + hv / 2, z, 5, 0, false);
+        bloco(b - a, .05, .1, M.esquadria, cx, y0 + v1 + .02, z, 5, 0, false);
+        bloco(b - a, .05, .1, M.esquadria, cx, y0 + v2 - .02, z, 5, 0, false);
+      }));
+      [hx, -hx].forEach(x => zs.slice(0, -1).forEach((z, i) => entre(x, z + .22, x, zs[i + 1] - .22, PD - .02, .16, M.placa, y0 + PD / 2, 3)));
+    }
+    // platibanda, caixa d'água e casa de máquinas
+    [hz, -hz].forEach(z => xs.slice(0, -1).forEach((x, i) => entre(x + .22, z, xs[i + 1] - .22, z, PLAT, .16, M.placa, Y0 + H + PLAT / 2, 4)));
+    [hx, -hx].forEach(x => zs.slice(0, -1).forEach((z, i) => entre(x, z + .22, x, zs[i + 1] - .22, PLAT, .16, M.placa, Y0 + H + PLAT / 2, 4)));
+    bloco(4, 2.4, 3, M.placa, -4, Y0 + H + 1.2, -2.5, 4);
+    bloco(3, 1.6, 2.4, M.estrutura, 3.5, Y0 + H + .8, -3, 4);
+    return { cam: [27, 15, 33], alvo: [0, 5.5, 0], dist: [20, 80], sol: [-26, 40, 22], sombra: 26,
+      ficha: [['Dimensões', '18 × 12 m'], ['Pavimentos', '4'], ['Área construída', '864 m²'], ['Pé-direito', '3,0 m']] };
+  }
+
+  const OBRAS = { casa, predio, galpao };
   let visivel = true, pedido = false, mexeu = false;
   let obraAtual = null, etapaAtual = 5, quedas = [];
   function montaObra(nome) {
@@ -268,6 +308,11 @@ export function iniciaProjeto3D(caixa, opc = {}) {
     if (controle) { controle.target.copy(alvo); controle.minDistance = o.dist[0]; controle.maxDistance = o.dist[1]; controle.update(); }
     else cam.lookAt(alvo);
     mostraEtapa(etapaAtual, false);
+    const conta = mat => pecas.filter(p => p.material === mat && (mat !== M.placa || p.userData.etapa === 3)).length;
+    const itens = [...o.ficha, ['Pilares', String(conta(M.pilar))], ['Placas de vedação', String(conta(M.placa))]];
+    if (conta(M.laje)) itens.push(['Lajes alveolares', String(conta(M.laje))]);
+    const ficha = caixa.querySelector('.p3d-ficha');
+    if (ficha) ficha.innerHTML = itens.map(([k, v]) => '<div><dt>' + k + '</dt><dd>' + v + '</dd></div>').join('');
   }
   function mostraEtapa(n, anima = true) {
     const antes = etapaAtual; etapaAtual = n; quedas = [];
