@@ -141,7 +141,7 @@
     new IntersectionObserver((es, o) => {
       if (!es[0].isIntersecting) return;
       o.disconnect();
-      import('./projeto3d.js?v=3').then(m => { if (!m.iniciaProjeto3D(p3d)) reserva(); }).catch(reserva);
+      import('./projeto3d.js?v=6').then(m => { if (!m.iniciaProjeto3D(p3d)) reserva(); }).catch(reserva);
     }, { rootMargin: '400px 0px' }).observe(p3d);
   }
 

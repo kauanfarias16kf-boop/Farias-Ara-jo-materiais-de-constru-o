@@ -1,242 +1,331 @@
-/* Farias Araújo · projeto em 3D (casa e galpão, etapa por etapa) */
+/* Farias Araújo · projeto em 3D, estilo maquete branca de arquitetura */
 import * as THREE from './vendor/three.module.min.js';
 import { OrbitControls } from './vendor/OrbitControls.js';
+import { EffectComposer } from './vendor/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from './vendor/jsm/postprocessing/RenderPass.js';
+import { GTAOPass } from './vendor/jsm/postprocessing/GTAOPass.js';
+import { OutputPass } from './vendor/jsm/postprocessing/OutputPass.js';
 
 const reduz = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-export function iniciaProjeto3D(caixa) {
+export function iniciaProjeto3D(caixa, opc = {}) {
   const palco = caixa.querySelector('.p3d-palco');
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'low-power' });
+    renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: opc.estatico ? 'high-performance' : 'low-power', preserveDrawingBuffer: !!opc.estatico });
   } catch { return false; }
   const W = () => palco.clientWidth, H = () => palco.clientHeight;
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  const dpr = opc.dpr || Math.min(devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(dpr);
   renderer.setSize(W(), H());
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = .86;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const tela = renderer.domElement;
   tela.setAttribute('aria-hidden', 'true');
   palco.appendChild(tela);
 
-  /* ---------- materiais com textura feita na hora ---------- */
-  function ruido(cor, v, tam = 256, manchas = 0, rep = 1) {
-    const c = document.createElement('canvas'); c.width = c.height = tam; const g = c.getContext('2d');
-    g.fillStyle = cor; g.fillRect(0, 0, tam, tam);
-    const im = g.getImageData(0, 0, tam, tam), d = im.data;
-    let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < d.length; i += 4) { const n = (rnd() - .5) * v; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
-    g.putImageData(im, 0, 0);
-    for (let k = 0; k < manchas; k++) { g.fillStyle = `rgba(90,85,80,${.03 + rnd() * .05})`; g.beginPath(); g.ellipse(rnd() * tam, rnd() * tam, 5 + rnd() * 30, 2 + rnd() * 15, rnd() * 3, 0, 7); g.fill(); }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(rep, rep); return t;
-  }
-  function listras(base, linha, n, ry = 1) {
-    const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
-    g.fillStyle = base; g.fillRect(0, 0, 128, 128);
-    for (let i = 0; i < n; i++) { const x = i * 128 / n, gr = g.createLinearGradient(x, 0, x + 128 / n, 0); gr.addColorStop(0, linha); gr.addColorStop(.5, base); gr.addColorStop(1, linha); g.fillStyle = gr; g.fillRect(x, 0, 128 / n, 128); }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(1, ry); return t;
+  /* ---------- materiais: só branco e cinza ---------- */
+  function riscas(escuro, vertical) {
+    const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, 64, 64);
+    g.fillStyle = escuro; vertical ? g.fillRect(0, 0, 3, 64) : g.fillRect(0, 0, 64, 3);
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
   }
   const M = {
-    placa: new THREE.MeshStandardMaterial({ map: ruido('#aca69c', 28, 256, 30, 2), roughness: .92 }),
-    pilar: new THREE.MeshStandardMaterial({ map: ruido('#a6a198', 22), roughness: .9 }),
-    laje: new THREE.MeshStandardMaterial({ map: ruido('#b3aea4', 20), roughness: .9 }),
-    piso: new THREE.MeshStandardMaterial({ map: ruido('#a9a59d', 14), roughness: .7 }),
-    vidro: new THREE.MeshStandardMaterial({ color: 0x2a3440, roughness: .08, metalness: .6 }),
-    caixilho: new THREE.MeshStandardMaterial({ color: 0x22232a, roughness: .5, metalness: .4 }),
-    ouro: new THREE.MeshStandardMaterial({ color: 0xc9a04a, roughness: .4, metalness: .6 }),
-    porta: new THREE.MeshStandardMaterial({ map: ruido('#6e4f33', 30), roughness: .7 }),
-    telha: new THREE.MeshStandardMaterial({ map: listras('#9aa0a6', '#6f757b', 12, 8), roughness: .45, metalness: .55 }),
-    portao: new THREE.MeshStandardMaterial({ map: listras('#d9d6cf', '#a8a49c', 20), roughness: .5, metalness: .4 }),
-    terra: new THREE.MeshStandardMaterial({ map: ruido('#b0744a', 34, 256, 0, 14), roughness: 1 }),
-    grama: new THREE.MeshStandardMaterial({ map: ruido('#7f8f4a', 40, 256, 0, 30), roughness: 1 }),
-    muro: new THREE.MeshStandardMaterial({ color: 0xd8d2c6, roughness: .95 }),
-    caixaAgua: new THREE.MeshStandardMaterial({ color: 0x2b6cb3, roughness: .4 }),
+    placa: new THREE.MeshStandardMaterial({ color: 0xf3f2ee, roughness: .92 }),
+    estrutura: new THREE.MeshStandardMaterial({ color: 0xdcdad4, roughness: .9 }),
+    base: new THREE.MeshStandardMaterial({ color: 0xd3d1cb, roughness: .95 }),
+    calcada: new THREE.MeshStandardMaterial({ color: 0xe5e3de, roughness: .95 }),
+    vidro: new THREE.MeshStandardMaterial({ color: 0x9aa1a7, roughness: .12, metalness: .35 }),
+    esquadria: new THREE.MeshStandardMaterial({ color: 0x5c5f63, roughness: .5, metalness: .2 }),
+    porta: new THREE.MeshStandardMaterial({ color: 0xc7c4bd, roughness: .8 }),
+    telha: new THREE.MeshStandardMaterial({ color: 0xecebe7, roughness: .85, map: riscas('#b5b3ad', false), side: THREE.DoubleSide }),
+    chapa: new THREE.MeshStandardMaterial({ color: 0xe9e8e4, roughness: .6, metalness: .1, map: riscas('#b0aea8', true) }),
+    portao: new THREE.MeshStandardMaterial({ color: 0xd6d4cf, roughness: .6, metalness: .15, map: riscas('#a5a39d', true) }),
+    metal: new THREE.MeshStandardMaterial({ color: 0x8b8d91, roughness: .5, metalness: .3 }),
+    arvore: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, flatShading: true }),
+    chao: new THREE.MeshStandardMaterial({ color: 0xf1f0ec, roughness: 1 }),
   };
+  M.portao.map.repeat.set(28, 1);
+  const linha = new THREE.LineBasicMaterial({ color: 0x3e3f42, transparent: true, opacity: .3 });
 
-  [M.placa, M.pilar, M.laje, M.piso, M.muro].forEach(m => (m.envMapIntensity = .35));
-
-  /* ---------- cena, luz e chão ---------- */
+  /* ---------- estúdio claro ---------- */
+  const FUNDO = 0xeeede9;
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xe9e4da, 80, 220);
-  const pm = new THREE.PMREMGenerator(renderer);
-  const ceu = new THREE.Scene(); ceu.background = new THREE.Color(0x9bb8d8);
-  scene.environment = pm.fromScene(ceu, .04).texture;
-  scene.add(new THREE.HemisphereLight(0xece6dc, 0x9a7a5e, .85));
-  const sol = new THREE.DirectionalLight(0xffdcae, 2.7);
-  sol.castShadow = true; sol.shadow.mapSize.set(2048, 2048);
-  sol.shadow.bias = -.0004; sol.shadow.normalBias = .03;
-  const sc = sol.shadow.camera; sc.far = 160;
+  scene.background = new THREE.Color(FUNDO);
+  scene.fog = new THREE.Fog(FUNDO, 80, 200);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xd9d6cf, 1.15));
+  const sol = new THREE.DirectionalLight(0xffffff, 1.9);
+  const mapa = opc.estatico ? 4096 : 2048;
+  sol.castShadow = true; sol.shadow.mapSize.set(mapa, mapa);
+  sol.shadow.bias = -.0003; sol.shadow.normalBias = .02; sol.shadow.radius = 4;
+  const sc = sol.shadow.camera; sc.far = 200;
   scene.add(sol, sol.target);
-  const chao = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), M.grama);
+  const chao = new THREE.Mesh(new THREE.PlaneGeometry(600, 600), M.chao);
   chao.rotation.x = -Math.PI / 2; chao.receiveShadow = true; scene.add(chao);
 
-  const cam = new THREE.PerspectiveCamera(36, W() / H(), .1, 500);
-  const controle = new OrbitControls(cam, tela);
-  controle.enableDamping = true; controle.dampingFactor = .08;
-  controle.enablePan = false;
-  controle.maxPolarAngle = Math.PI / 2 - .08; controle.minPolarAngle = .25;
-  controle.autoRotate = !reduz; controle.autoRotateSpeed = .6;
-  // no celular: arrastar para o lado gira, arrastar para cima e para baixo continua rolando a página
-  tela.style.touchAction = 'pan-y';
+  const cam = new THREE.PerspectiveCamera(32, W() / H(), .1, 500);
 
-  /* ---------- montagem das duas obras ---------- */
-  // cada peça guarda a etapa em que aparece; o botão de etapa mostra tudo até ela
+  // oclusão de ambiente: dá volume nas quinas, como numa maquete fotografada
+  let composer = null;
+  try {
+    const alvoRT = new THREE.WebGLRenderTarget(W() * dpr, H() * dpr, { type: THREE.HalfFloatType, samples: 4 });
+    composer = new EffectComposer(renderer, alvoRT);
+    composer.setPixelRatio(dpr); composer.setSize(W(), H());
+    composer.addPass(new RenderPass(scene, cam));
+    const ao = new GTAOPass(scene, cam, W(), H());
+    ao.updateGtaoMaterial({ radius: .8, distanceExponent: 1.4, thickness: 1.4, scale: 1.1, samples: 16 });
+    ao.blendIntensity = .9;
+    composer.addPass(ao);
+    composer.addPass(new OutputPass());
+  } catch { composer = null; }
+  const desenha = () => (composer ? composer.render() : renderer.render(scene, cam));
+
+  let controle = null;
+  if (!opc.estatico) {
+    controle = new OrbitControls(cam, tela);
+    controle.enableDamping = true; controle.dampingFactor = .08;
+    controle.enablePan = false;
+    controle.maxPolarAngle = Math.PI / 2 - .1; controle.minPolarAngle = .3;
+    controle.autoRotate = !reduz; controle.autoRotateSpeed = .5;
+    // no celular: arrastar para o lado gira, para cima e para baixo rola a página
+    tela.style.touchAction = 'pan-y';
+  }
+
+  /* ---------- peças ---------- */
   let grupo = null, pecas = [];
-  function caixaM(w, h, d, mat, x, y, z, etapa, ry = 0) {
+  function poe(m, etapa, contorno = true) {
+    m.castShadow = m.receiveShadow = true;
+    if (contorno) m.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 25), linha));
+    m.userData.etapa = etapa; m.userData.y = m.position.y;
+    grupo.add(m); pecas.push(m); return m;
+  }
+  function bloco(w, h, d, mat, x, y, z, etapa, ry = 0, contorno = true) {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-    m.position.set(x, y, z); m.rotation.y = ry; m.castShadow = m.receiveShadow = true;
-    m.userData = { etapa, y }; grupo.add(m); pecas.push(m); return m;
+    m.position.set(x, y, z); m.rotation.y = ry; return poe(m, etapa, contorno);
   }
-  function malha(geo, mat, etapa) {
-    const m = new THREE.Mesh(geo, mat); m.castShadow = m.receiveShadow = true;
-    m.userData = { etapa }; grupo.add(m); pecas.push(m); return m;
+  // peça deitada entre dois pontos do plano (paredes, vigas)
+  function entre(x1, z1, x2, z2, h, esp, mat, y, etapa, contorno = true) {
+    const l = Math.hypot(x2 - x1, z2 - z1);
+    return bloco(l, h, esp, mat, (x1 + x2) / 2, y, (z1 + z2) / 2, etapa, -Math.atan2(z2 - z1, x2 - x1), contorno);
   }
-  function plano(w, d, mat, x, z, etapa, y = .01) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d), mat);
-    m.rotation.x = -Math.PI / 2; m.position.set(x, y, z); m.receiveShadow = true;
-    m.userData = { etapa, y }; grupo.add(m); pecas.push(m); return m;
+  // barra no plano vertical x/y (tesouras)
+  function barra(x1, y1, x2, y2, z, s, etapa) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(x2 - x1, y2 - y1), s, s), M.metal);
+    m.position.set((x1 + x2) / 2, (y1 + y2) / 2, z); m.rotation.z = Math.atan2(y2 - y1, x2 - x1);
+    return poe(m, etapa, false);
   }
-  function muro(x1, z1, x2, z2) { const l = Math.hypot(x2 - x1, z2 - z1); caixaM(l, 2, .15, M.muro, (x1 + x2) / 2, 1, (z1 + z2) / 2, 0, -Math.atan2(z2 - z1, x2 - x1)); }
-  function paredeX(x0, x1, z, h, vaos, etapa) {
-    const larg = 1.25, junta = .025, esp = .12;
-    for (let x = x0; x < x1 - .01; x += larg) {
-      const w = Math.min(larg, x1 - x) - junta, cx = x + w / 2 + junta / 2;
-      const v = vaos.find(v => cx > v.a && cx < v.b);
-      if (!v) { caixaM(w, h, esp, M.placa, cx, h / 2 + .25, z, etapa); continue; }
-      if (v.p > 0) caixaM(w, v.p, esp, M.placa, cx, v.p / 2 + .25, z, etapa);
-      caixaM(w, h - v.t, esp, M.placa, cx, v.t + (h - v.t) / 2 + .25, z, etapa);
-    }
-    vaos.forEach(v => {
-      const w = v.b - v.a, hv = v.t - v.p, cx = (v.a + v.b) / 2, cy = .25 + v.p + hv / 2;
-      if (v.porta) { caixaM(w - .1, hv - .05, .06, M.porta, cx, cy, z, 5); return; }
-      caixaM(w, hv, .03, M.vidro, cx, cy, z, 5);
-      caixaM(w + .08, .07, esp + .04, M.caixilho, cx, .25 + v.p, z, 5); caixaM(w + .08, .07, esp + .04, M.caixilho, cx, .25 + v.t, z, 5);
-      caixaM(.06, hv, esp + .04, M.caixilho, v.a, cy, z, 5); caixaM(.06, hv, esp + .04, M.caixilho, v.b, cy, z, 5); caixaM(.05, hv, esp + .04, M.caixilho, cx, cy, z, 5);
-    });
-  }
-  function paredeZ(z0, z1, x, h, etapa) {
-    const larg = 1.25, junta = .025;
-    for (let z = z0; z < z1 - .01; z += larg) { const w = Math.min(larg, z1 - z) - junta; caixaM(.12, h, w, M.placa, x, h / 2 + .25, z + w / 2 + junta / 2, etapa); }
+  function arvore(x, z, s = 1) {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(.08 * s, .12 * s, 1.6 * s, 8), M.arvore); t.position.set(x, .8 * s, z); poe(t, 0, false);
+    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25 * s, 1), M.arvore); c.position.set(x, 2.5 * s, z); c.scale.y = 1.15; poe(c, 0, false);
   }
 
-  const OBRAS = {
-    casa: {
-      cam: [17, 7, 19], alvo: [0, 1.6, 0], dist: [11, 42], sol: [-40, 34, 28], sombra: 26,
-      monta() {
-        const L = 12, P = 8, h = 2.9;
-        plano(40, 30, M.terra, 0, 0, 0);
-        muro(-20, -15, 20, -15); muro(-20, -15, -20, 15); muro(20, -15, 20, 15);
-        caixaM(L + .6, .25, P + .6, M.piso, 0, .125, 0, 1);
-        caixaM(2.2, .12, 1.4, M.piso, 1.2, .06, P / 2 + 1, 1);
-        [-L / 2, -L / 4, 0, L / 4, L / 2].forEach(x => [-P / 2, 0, P / 2].forEach(z => {
-          if (z === 0 && Math.abs(x) < L / 2) return;
-          caixaM(.22, h + .2, .22, M.pilar, x, (h + .2) / 2 + .25, z, 2);
-        }));
-        caixaM(L + .2, .3, .25, M.pilar, 0, h + .35, P / 2, 2); caixaM(L + .2, .3, .25, M.pilar, 0, h + .35, -P / 2, 2);
-        caixaM(.25, .3, P, M.pilar, -L / 2, h + .35, 0, 2); caixaM(.25, .3, P, M.pilar, L / 2, h + .35, 0, 2);
-        paredeX(-L / 2, L / 2, P / 2, h, [{ a: -4.6, b: -2.1, p: 1, t: 2.3 }, { a: .5, b: 1.9, p: 0, t: 2.2, porta: true }, { a: 2.6, b: 5.1, p: 1, t: 2.3 }], 3);
-        paredeX(-L / 2, L / 2, -P / 2, h, [{ a: -2, b: 0, p: 1.4, t: 2.3 }], 3);
-        paredeZ(-P / 2, P / 2, -L / 2, h, 3); paredeZ(-P / 2, P / 2, L / 2, h, 3);
-        caixaM(L + 1.2, .22, P + 1.2, M.laje, 0, h + .6, 0, 4);
-        caixaM(L + 1.2, .5, .1, M.laje, 0, h + .94, P / 2 + .55, 4); caixaM(L + 1.2, .5, .1, M.laje, 0, h + .94, -P / 2 - .55, 4);
-        caixaM(.1, .5, P + 1.2, M.laje, L / 2 + .55, h + .94, 0, 4); caixaM(.1, .5, P + 1.2, M.laje, -L / 2 - .55, h + .94, 0, 4);
-        caixaM(L + 1.22, .06, .12, M.ouro, 0, h + .74, P / 2 + .6, 5);
-        // cavalete com caixa d'água, como nas obras de verdade
-        [[-9, -9], [-7.6, -9], [-9, -7.6], [-7.6, -7.6]].forEach(([x, z]) => caixaM(.12, 3.2, .12, M.pilar, x, 1.6, z, 0));
-        const cx = malha(new THREE.CylinderGeometry(.85, .7, .9, 24), M.caixaAgua, 0); cx.position.set(-8.3, 3.65, -8.3); cx.userData.y = 3.65;
-      },
-    },
-    galpao: {
-      cam: [30, 11, 42], alvo: [0, 4, 0], dist: [24, 80], sol: [-50, 40, 45], sombra: 40,
-      monta() {
-        const L = 20, C = 30, h = 7, cume = 3.2;
-        plano(60, 60, M.terra, 0, 6, 0);
-        caixaM(L + 1, .3, C + 1, M.piso, 0, .15, 0, 1);
-        for (let z = -C / 2; z <= C / 2 + .01; z += 5) [-L / 2, L / 2].forEach(x => caixaM(.45, h, .45, M.pilar, x, h / 2 + .3, z, 2));
-        [-L / 2, L / 2].forEach(x => caixaM(.5, .5, C, M.pilar, x, h + .1, 0, 2));
-        [-L / 2, L / 2].forEach(x => {
-          for (let z = -C / 2; z < C / 2 - .01; z += 1.25) caixaM(.15, 4.5, 1.22, M.placa, x, 2.55, z + .625, 3);
-          caixaM(.12, 1.2, C, M.vidro, x, 5.6, 0, 5);
-        });
-        for (let x = -L / 2; x < L / 2 - .01; x += 1.25) {
-          const cx = x + .62;
-          if (Math.abs(cx) < 3) { caixaM(1.24, 1.85, .15, M.placa, cx, 6.42, C / 2, 3); continue; }
-          caixaM(1.22, h, .15, M.placa, cx, h / 2 + .3, C / 2, 3);
+  /* ---------- casa: pilares, placas horizontais e telhado de quatro águas ---------- */
+  function casa() {
+    const B = 1.6, NX = 8, NZ = 5, hx = NX * B / 2, hz = NZ * B / 2, Y0 = .22, HP = 3, FL = .5;
+    bloco(NX * B + 3, .08, NZ * B + 3, M.calcada, 0, .04, 0, 5);
+    bloco(2.2, .08, 3.2, M.calcada, -.8, .04, hz + 2.8, 5);
+    bloco(NX * B + .5, Y0, NZ * B + .5, M.base, 0, Y0 / 2, 0, 1);
+    // [x1, z1, x2, z2, vãos]: - placa cheia, J janela, P porta, B basculante
+    const paredes = [
+      [-hx, hz, hx, hz, '-JJ-P-J-'],
+      [-hx, -hz, hx, -hz, '-B-J--B-'],
+      [-hx, -hz, -hx, hz, '-J-J-'],
+      [hx, -hz, hx, hz, '--J--'],
+      [-hx, -.8, 0, -.8, '-P--'],
+      [0, -.8, hx, -.8, '--P-'],
+      [0, -.8, 0, hz, '-P-'],
+    ];
+    const nos = new Map();
+    paredes.forEach(([x1, z1, x2, z2, v]) => {
+      const n = v.length, dx = (x2 - x1) / n, dz = (z2 - z1) / n, ux = dx / B, uz = dz / B, f = .085;
+      for (let k = 0; k <= n; k++) { const x = x1 + dx * k, z = z1 + dz * k; nos.set(x.toFixed(2) + ',' + z.toFixed(2), [x, z]); }
+      entre(x1, z1, x2, z2, .2, .17, M.estrutura, Y0 + HP + .1, 2); // cinta de amarração
+      for (let k = 0; k < n; k++) {
+        const t = v[k], ax = x1 + dx * k, az = z1 + dz * k, bx = ax + dx, bz = az + dz;
+        const vazio = { J: [2, 3], P: [0, 1, 2, 3], B: [3] }[t] || [];
+        for (let r = 0; r < HP / FL; r++) {
+          if (!vazio.includes(r)) entre(ax + ux * f, az + uz * f, bx - ux * f, bz - uz * f, FL - .014, .07, M.placa, Y0 + r * FL + FL / 2, 3);
         }
-        for (let x = -L / 2; x < L / 2 - .01; x += 1.25) caixaM(1.22, h, .15, M.placa, x + .62, h / 2 + .3, -C / 2, 3);
-        const tri = new THREE.Shape(); tri.moveTo(-L / 2, 0); tri.lineTo(L / 2, 0); tri.lineTo(0, cume); tri.lineTo(-L / 2, 0);
-        [C / 2, -C / 2].forEach(z => { const m = malha(new THREE.ExtrudeGeometry(tri, { depth: .15, bevelEnabled: false }), M.placa, 4); m.position.set(0, h + .3, z - .075); m.userData.y = h + .3; });
-        const ag = Math.atan2(cume, L / 2), lado = Math.hypot(L / 2, cume) + .9;
-        [-1, 1].forEach(s => { const t = malha(new THREE.BoxGeometry(lado, .1, C + 1.6), M.telha, 4); const y = h + .3 + cume / 2 + .05; t.position.set(s * (L / 4 + .2), y, 0); t.rotation.z = -s * ag; t.userData.y = y; });
-        caixaM(.3, .3, C + 1.6, M.laje, 0, h + .3 + cume + .05, 0, 4);
-        caixaM(6, 5.2, .1, M.portao, 0, 2.9, C / 2 + .04, 5);
-        caixaM(6.4, .22, .12, M.ouro, 0, 5.6, C / 2 + .1, 5);
-        plano(14, 12, M.piso, 0, C / 2 + 6.5, 5, .02);
-      },
-    },
-  };
+        if (t === '-') continue;
+        const cx = (ax + bx) / 2, cz = (az + bz) / 2, ry = -Math.atan2(dz, dx), lw = B - .17;
+        const [y1, y2] = { J: [1, 2], P: [0, 2], B: [1.5, 2] }[t].map(y => Y0 + y);
+        const hy = y2 - y1, my = (y1 + y2) / 2;
+        if (t === 'P') {
+          bloco(lw - .5, hy - .04, .05, M.porta, cx, my, cz, 5, ry);
+          bloco(lw - .4, .06, .1, M.esquadria, cx, y2 - .03, cz, 5, ry, false);
+          continue;
+        }
+        bloco(lw, hy, .025, M.vidro, cx, my, cz, 5, ry, false);
+        bloco(lw, .05, .1, M.esquadria, cx, y1 + .025, cz, 5, ry, false);
+        bloco(lw, .05, .1, M.esquadria, cx, y2 - .025, cz, 5, ry, false);
+        bloco(.04, hy, .1, M.esquadria, cx, my, cz, 5, ry, false);
+        bloco(lw + .14, .05, .2, M.estrutura, cx, y1 - .03, cz, 5, ry); // peitoril
+      }
+    });
+    nos.forEach(([x, z]) => bloco(.17, HP + .2, .17, M.estrutura, x, Y0 + (HP + .2) / 2, z, 2));
+    // arranques de aço deixados na base para os pilares
+    nos.forEach(([x, z]) => [-.04, .04].forEach(d => bloco(.025, .55, .025, M.metal, x + d, Y0 + .27, z + d, 1, 0, false)));
 
-  /* ---------- troca de obra e de etapa ---------- */
+    // telhado de quatro águas
+    const ex = hx + .75, ez = hz + .75, ye = Y0 + HP + .2, sobe = ez * .38, yt = ye + sobe, rx = ex - ez, FT = .4;
+    const pos = [], uv = [];
+    const tri = (a, b, c, ua, ub, uc) => { pos.push(...a, ...b, ...c); uv.push(...ua, ...ub, ...uc); };
+    const vf = Math.hypot(ez, sobe) / FT, vl = Math.hypot(ex - rx, sobe) / FT;
+    tri([-ex, ye, ez], [ex, ye, ez], [rx, yt, 0], [-ex, 0], [ex, 0], [rx, vf]);
+    tri([-ex, ye, ez], [rx, yt, 0], [-rx, yt, 0], [-ex, 0], [rx, vf], [-rx, vf]);
+    tri([ex, ye, -ez], [-ex, ye, -ez], [-rx, yt, 0], [ex, 0], [-ex, 0], [-rx, vf]);
+    tri([ex, ye, -ez], [-rx, yt, 0], [rx, yt, 0], [ex, 0], [-rx, vf], [rx, vf]);
+    tri([ex, ye, ez], [ex, ye, -ez], [rx, yt, 0], [ez, 0], [-ez, 0], [0, vl]);
+    tri([-ex, ye, -ez], [-ex, ye, ez], [-rx, yt, 0], [-ez, 0], [ez, 0], [0, vl]);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo.computeVertexNormals();
+    poe(new THREE.Mesh(geo, M.telha), 4);
+    // testeira e forro do beiral
+    entre(-ex, ez, ex, ez, .2, .05, M.placa, ye - .08, 4); entre(-ex, -ez, ex, -ez, .2, .05, M.placa, ye - .08, 4);
+    entre(ex, -ez, ex, ez, .2, .05, M.placa, ye - .08, 4); entre(-ex, -ez, -ex, ez, .2, .05, M.placa, ye - .08, 4);
+    bloco(2 * ex, .04, 2 * ez, M.placa, 0, ye - .17, 0, 4, 0, false);
+
+    [[-13, 9, 1.1], [12.5, -8, 1], [-12, -9.5, .9], [14, 7.5, .8]].forEach(([x, z, s]) => arvore(x, z, s));
+    return { cam: [15, 8.5, 19], alvo: [0, 1.9, 0], dist: [12, 45], sol: [-22, 30, 18], sombra: 22 };
+  }
+
+  /* ---------- galpão: pilares de concreto, tesouras metálicas e telha ---------- */
+  function galpao() {
+    const L = 20, C = 30, hx = L / 2, hz = C / 2, Y0 = .3, HP = 7.2, FL = .5;
+    bloco(L + 1, Y0, C + 1, M.base, 0, Y0 / 2, 0, 1);
+    bloco(16, .08, 12, M.calcada, 0, .04, hz + 6.5, 5);
+    const zs = []; for (let z = -hz; z <= hz + .01; z += 5) zs.push(z);
+    const frente = [-hx, -6.5, -3, 3, 6.5, hx], fundo = [-hx, -5, 0, 5, hx];
+    zs.forEach(z => [-hx, hx].forEach(x => bloco(1, .35, 1.1, M.base, x, Y0 + .17, z, 1))); // cálices
+    zs.forEach(z => [-hx, hx].forEach(x => bloco(.4, HP + .6, .5, M.estrutura, x, Y0 + (HP + .6) / 2, z, 2)));
+    frente.slice(1, -1).forEach(x => bloco(.3, HP, .3, M.estrutura, x, Y0 + HP / 2, hz, 2));
+    fundo.slice(1, -1).forEach(x => bloco(.3, HP, .3, M.estrutura, x, Y0 + HP / 2, -hz, 2));
+    [-hx, hx].forEach(x => entre(x, -hz, x, hz, .6, .5, M.estrutura, Y0 + HP + .3, 2)); // viga calha
+    [hz, -hz].forEach(z => entre(-hx, z, hx, z, .8, .3, M.estrutura, Y0 + HP + .2, 2));
+    // laterais: placas até 4,5 m, faixa de ventilação com venezianas, placas até o topo
+    [-hx, hx].forEach(x => zs.slice(0, -1).forEach(z => {
+      const a = z + .3, b = z + 5 - .3;
+      for (let r = 0; r < HP / FL; r++) { const y = r * FL; if (y >= 4.5 && y < 5.5) continue; entre(x, a, x, b, FL - .015, .12, M.placa, Y0 + y + FL / 2, 3); }
+      for (let i = 0; i < 4; i++) entre(x, a, x, b, .05, .2, M.metal, Y0 + 4.62 + i * .25, 5, false);
+    }));
+    const fecha = (xs, z, portao) => xs.slice(0, -1).forEach((x, i) => {
+      const a = x + .18, b = xs[i + 1] - .18, vao = portao && Math.abs((x + xs[i + 1]) / 2) < 1;
+      for (let r = 0; r < (HP - .4) / FL; r++) { if (vao && r * FL < 5.5) continue; entre(a, z, b, z, FL - .015, .12, M.placa, Y0 + r * FL + FL / 2, 3); }
+    });
+    fecha(frente, hz, true); fecha(fundo, -hz, false);
+    // empenas
+    const sobe = hx * .16, ye = Y0 + HP + .6;
+    [hz, -hz].forEach(z => {
+      const s = new THREE.Shape(); s.moveTo(-hx - .2, 0); s.lineTo(hx + .2, 0); s.lineTo(0, sobe + .05); s.lineTo(-hx - .2, 0);
+      const m = new THREE.Mesh(new THREE.ExtrudeGeometry(s, { depth: .15, bevelEnabled: false }), M.placa);
+      m.position.set(0, ye - .02, z - .075); poe(m, 4);
+    });
+    // tesouras metálicas sobre cada par de pilares
+    const topo = x => ye + sobe * (1 - Math.abs(x) / hx), NN = 10;
+    zs.slice(1, -1).forEach(z => {
+      barra(-hx, ye, hx, ye, z, .1, 4);
+      barra(-hx, ye, 0, ye + sobe, z, .12, 4); barra(0, ye + sobe, hx, ye, z, .12, 4);
+      for (let k = 1; k < NN; k++) {
+        const x = -hx + k * L / NN;
+        barra(x, ye, x, topo(x), z, .06, 4);
+        const xn = x + (x < 0 ? L / NN : -L / NN);
+        if (k !== NN / 2) barra(x, ye, xn, topo(xn), z, .05, 4);
+      }
+    });
+    // telha metálica de duas águas e cumeeira
+    const ag = Math.atan2(sobe, hx), lado = Math.hypot(hx, sobe) + .9;
+    M.chapa.map.repeat.set(1, (C + 1.4) / .3);
+    [-1, 1].forEach(s => {
+      const t = new THREE.Mesh(new THREE.BoxGeometry(lado, .06, C + 1.4), M.chapa);
+      t.position.set(s * (lado / 2) * Math.cos(ag), ye + sobe - (lado / 2) * Math.sin(ag) + .1, 0);
+      t.rotation.z = -s * ag; poe(t, 4);
+    });
+    bloco(.6, .12, C + 1.4, M.placa, 0, ye + sobe + .16, 0, 4);
+    // portão e acabamento
+    bloco(5.6, 5.4, .1, M.portao, 0, Y0 + 2.7, hz + .12, 5);
+    bloco(6.2, .25, .3, M.estrutura, 0, Y0 + 5.55, hz + .12, 5);
+    [[-17, 10, 1.3], [16, -12, 1.2], [-16, -14, 1], [17, 14, 1.1]].forEach(([x, z, s]) => arvore(x, z, s));
+    return { cam: [30, 13, 40], alvo: [0, 3.8, 1], dist: [22, 85], sol: [-30, 42, 30], sombra: 34 };
+  }
+
+  const OBRAS = { casa, galpao };
+  let visivel = true, pedido = false, mexeu = false;
   let obraAtual = null, etapaAtual = 5, quedas = [];
   function montaObra(nome) {
     if (grupo) { grupo.traverse(o => o.geometry && o.geometry.dispose()); scene.remove(grupo); }
     grupo = new THREE.Group(); pecas = []; scene.add(grupo);
-    const o = OBRAS[nome]; obraAtual = nome; o.monta();
+    obraAtual = nome;
+    const o = OBRAS[nome]();
     sol.position.set(...o.sol); sc.left = sc.bottom = -o.sombra; sc.right = sc.top = o.sombra; sc.updateProjectionMatrix();
-    cam.position.set(...o.cam); controle.target.set(...o.alvo);
-    controle.minDistance = o.dist[0]; controle.maxDistance = o.dist[1];
-    controle.update();
+    cam.position.set(...(opc.cam || o.cam));
+    const alvo = new THREE.Vector3(...(opc.alvo || o.alvo));
+    // tela estreita (celular): afasta a câmera para a obra caber inteira
+    if (!opc.cam) { const asp = W() / H(); if (asp < 1.5) cam.position.sub(alvo).multiplyScalar(Math.min(1.45, 1.5 / asp)).add(alvo); }
+    if (controle) { controle.target.copy(alvo); controle.minDistance = o.dist[0]; controle.maxDistance = o.dist[1]; controle.update(); }
+    else cam.lookAt(alvo);
     mostraEtapa(etapaAtual, false);
   }
   function mostraEtapa(n, anima = true) {
     const antes = etapaAtual; etapaAtual = n; quedas = [];
-    const agora = performance.now();
-    let ordem = 0;
+    const agora = performance.now(); let ordem = 0;
     pecas.forEach(p => {
-      const ve = p.userData.etapa <= n;
-      p.visible = ve;
-      if (ve && anima && !reduz && p.userData.etapa > antes && p.userData.etapa > 0 && p.userData.y !== undefined) {
+      const ve = p.userData.etapa <= n; p.visible = ve;
+      if (ve && anima && !reduz && p.userData.etapa > antes && p.userData.etapa > 0) {
         p.position.y = p.userData.y + 4;
-        quedas.push({ p, t0: agora + (ordem++ % 40) * 18 + (p.userData.etapa - antes - 1) * 380 });
-      } else if (p.userData.y !== undefined) p.position.y = p.userData.y;
+        quedas.push({ p, t0: agora + (ordem++ % 48) * 14 + (p.userData.etapa - antes - 1) * 420 });
+      } else p.position.y = p.userData.y;
     });
     pede();
   }
 
+  /* ---------- foto parada (para as ilustrações do site) ---------- */
+  if (opc.estatico) {
+    etapaAtual = opc.etapa ?? 5;
+    montaObra(opc.obra || 'casa');
+    desenha();
+    caixa.dataset.pronto = '1';
+    return true;
+  }
+
   /* ---------- desenho só quando precisa ---------- */
-  let visivel = true, pedido = false, mexeu = false;
-  function pede() { if (!pedido && visivel) { pedido = true; requestAnimationFrame(quadro); } }
+  function pede() { if (!pedido && visivel && controle) { pedido = true; requestAnimationFrame(quadro); } }
   function quadro(t) {
     pedido = false;
     let segue = controle.update() || controle.autoRotate;
     if (quedas.length) {
       quedas = quedas.filter(q => {
-        const k = Math.min(1, Math.max(0, (t - q.t0) / 520));
-        const e = 1 - Math.pow(1 - k, 3);
+        const k = Math.min(1, Math.max(0, (t - q.t0) / 520)), e = 1 - Math.pow(1 - k, 3);
         q.p.position.y = q.p.userData.y + 4 * (1 - e);
         return k < 1;
       });
       segue = true;
     }
-    renderer.render(scene, cam);
+    desenha();
     if (segue || mexeu) pede();
   }
+  const girar = caixa.querySelector('.p3d-girar');
   controle.addEventListener('change', pede);
-  controle.addEventListener('start', () => { controle.autoRotate = false; mexeu = true; caixa.classList.add('mexeu'); pede(); });
+  controle.addEventListener('start', () => { controle.autoRotate = false; mexeu = true; caixa.classList.add('mexeu'); if (girar) girar.setAttribute('aria-pressed', 'false'); pede(); });
   controle.addEventListener('end', () => { mexeu = false; pede(); });
   new IntersectionObserver(es => { visivel = es[0].isIntersecting; if (visivel) pede(); }).observe(palco);
-  new ResizeObserver(() => { renderer.setSize(W(), H()); cam.aspect = W() / H(); cam.updateProjectionMatrix(); pede(); }).observe(palco);
+  new ResizeObserver(() => {
+    renderer.setSize(W(), H()); if (composer) composer.setSize(W(), H());
+    cam.aspect = W() / H(); cam.updateProjectionMatrix(); pede();
+  }).observe(palco);
 
   /* ---------- botões ---------- */
   const abas = [...caixa.querySelectorAll('[data-obra]')];
   const etapas = [...caixa.querySelectorAll('[data-etapa]')];
   const textos = [...caixa.querySelectorAll('[data-txt-obra]')];
+  const legenda = caixa.querySelector('.p3d-legenda');
   function marcaAba(nome) {
     abas.forEach(a => a.setAttribute('aria-pressed', String(a.dataset.obra === nome)));
     textos.forEach(t => (t.hidden = t.dataset.txtObra !== nome));
   }
-  const legenda = caixa.querySelector('.p3d-legenda');
   function marcaEtapa(n) {
     etapas.forEach(b => b.setAttribute('aria-current', String(+b.dataset.etapa === n)));
     caixa.dataset.etapa = n;
@@ -246,21 +335,17 @@ export function iniciaProjeto3D(caixa) {
   abas.forEach(a => a.addEventListener('click', () => {
     if (a.dataset.obra === obraAtual) return;
     marcaAba(a.dataset.obra); etapaAtual = 5; marcaEtapa(5); montaObra(a.dataset.obra);
-    controle.autoRotate = !reduz && !caixa.classList.contains('mexeu');
   }));
   etapas.forEach(b => b.addEventListener('click', () => {
     const n = +b.dataset.etapa;
     marcaEtapa(n);
-    if (n <= etapaAtual) { mostraEtapa(0, false); etapaAtual = 0; }
+    if (n <= etapaAtual) mostraEtapa(0, false);
     mostraEtapa(n, true);
   }));
-  const girar = caixa.querySelector('.p3d-girar');
-  if (girar) girar.addEventListener('click', () => {
-    controle.autoRotate = !controle.autoRotate;
+  if (girar) {
     girar.setAttribute('aria-pressed', String(controle.autoRotate));
-    pede();
-  });
-  if (girar) girar.setAttribute('aria-pressed', String(controle.autoRotate));
+    girar.addEventListener('click', () => { controle.autoRotate = !controle.autoRotate; girar.setAttribute('aria-pressed', String(controle.autoRotate)); pede(); });
+  }
 
   marcaAba('casa'); marcaEtapa(5); montaObra('casa');
   caixa.classList.add('pronto3d');
