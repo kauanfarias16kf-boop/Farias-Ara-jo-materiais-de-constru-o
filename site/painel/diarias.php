@@ -103,6 +103,7 @@ topo('Diárias', 'diarias', $u);
     <button type="button" role="tab" id="aba-grade" aria-controls="painel-grade" aria-selected="true">Grade do período</button>
     <button type="button" role="tab" id="aba-dia" aria-controls="painel-dia" aria-selected="false">Marcar o dia</button>
   </div>
+  <a class="btn btn-pq" href="planilha.php">Colar da planilha</a>
 </div>
 
 <div class="resumo-dia">
