@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/site.css?v=6">
+<link rel="stylesheet" href="assets/css/site.css?v=7">
 <script>document.documentElement.classList.add('js')</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"HomeAndConstructionBusiness","name":"Farias Araújo Construções Pré Moldadas","email":"fariasaraujo.construcoes@gmail.com","telephone":"+55 61 99440-8678","areaServed":"Distrito Federal","sameAs":["https://www.instagram.com/obras_contrucoes.fariasaraujo/"],"slogan":"Construindo hoje, realizando o amanhã."}</script>
 </head>
@@ -32,6 +32,7 @@
         <li><a href="#inicio">Início</a></li>
         <li><a href="#sobre">Sobre</a></li>
         <li><a href="#servicos">Serviços</a></li>
+        <li><a href="#projeto-3d">Projeto 3D</a></li>
         <li><a href="#obras">Obras</a></li>
         <li><a href="#como-funciona">Como funciona</a></li>
         <li><a href="#contato">Contato</a></li>
@@ -157,6 +158,38 @@
         <li class="r"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 42V12M40 42V12M4 12h40M8 24h32M8 24l16 12 16-12M2 42h44"/></svg><h3>Estrutura pré moldada</h3><p>Concreto na medida certa, obra mais rápida e com menos sobra.</p></li>
         <li class="r"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 4h18l8 8v32H12zM30 4v8h8M18 20h14M18 26h14M18 32h9"/></svg><h3>Orçamento item por item</h3><p>Cada parte da obra com o seu valor.</p></li>
       </ul>
+    </div>
+  </section>
+
+  <!-- ===== PROJETO EM 3D ===== -->
+  <section class="secao projeto3d" id="projeto-3d" aria-labelledby="t-3d">
+    <div class="dentro p3d" data-etapa="5">
+      <div class="p3d-txt">
+        <p class="sobretitulo r">Projeto em 3D</p>
+        <h2 class="titulo r" id="t-3d">Veja a obra subir, etapa por etapa.</h2>
+        <p class="texto r">Escolha a casa ou o galpão e toque nas etapas. É a mesma ordem que seguimos no seu terreno, e cada etapa é uma parte do pagamento.</p>
+        <div class="p3d-abas r" role="group" aria-label="Escolha o projeto">
+          <button type="button" data-obra="casa" aria-pressed="true">Casa pré moldada</button>
+          <button type="button" data-obra="galpao" aria-pressed="false">Galpão</button>
+        </div>
+        <ol class="p3d-etapas r" aria-label="Etapas da obra">
+          <li><button type="button" data-etapa="1" aria-label="Etapa 1: Base e fundação" aria-current="false"><b>1</b><span>Base e fundação<small data-txt-obra="casa">Feita para o terreno, antes de qualquer parede.</small><small data-txt-obra="galpao" hidden>Piso de concreto pronto para receber carga.</small></span></button></li>
+          <li><button type="button" data-etapa="2" aria-label="Etapa 2: Estrutura" aria-current="false"><b>2</b><span>Estrutura<small data-txt-obra="casa">Pilares e vigas de concreto no prumo.</small><small data-txt-obra="galpao" hidden>Pilares a cada 5 metros e vigas no topo.</small></span></button></li>
+          <li><button type="button" data-etapa="3" aria-label="Etapa 3: Placas pré moldadas" aria-current="false"><b>3</b><span>Placas pré moldadas<small data-txt-obra="casa">As placas encaixam entre os pilares e a casa fecha rápido.</small><small data-txt-obra="galpao" hidden>Placas nas laterais e na frente, com faixa de ventilação.</small></span></button></li>
+          <li><button type="button" data-etapa="4" aria-label="Etapa 4: Cobertura" aria-current="false"><b>4</b><span>Cobertura<small data-txt-obra="casa">Laje com beiral para proteger as paredes da chuva.</small><small data-txt-obra="galpao" hidden>Telhado de duas águas em telha metálica.</small></span></button></li>
+          <li><button type="button" data-etapa="5" aria-label="Etapa 5: Acabamento" aria-current="true"><b>5</b><span>Acabamento<small data-txt-obra="casa">Janelas, porta e o acabamento que você escolher.</small><small data-txt-obra="galpao" hidden>Portão largo, pátio e o galpão pronto para usar.</small></span></button></li>
+        </ol>
+        <p class="p3d-legenda" aria-live="polite"></p>
+        <a class="btn btn-ouro r p3d-cta" href="#contato">Quero um projeto assim <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <figure class="p3d-vista r">
+        <div class="p3d-palco">
+          <img class="p3d-poster" src="assets/img/3d/3d-casa-p.webp" alt="Ilustração 3D de uma casa pré moldada pronta" width="800" height="450" loading="lazy">
+          <button type="button" class="p3d-girar" aria-pressed="true" aria-label="Girar o projeto sozinho"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 11-2.3-5.7M20 4v4h-4"/></svg></button>
+          <p class="p3d-dica" aria-hidden="true">Arraste para girar</p>
+        </div>
+        <figcaption>Ilustração do método. O seu projeto é desenhado para o seu terreno.</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -299,7 +332,7 @@
   <div class="dentro">
     <div class="rod-topo"><img src="assets/img/logo.webp" alt="Farias Araújo Construções Pré Moldadas" width="150" height="98" loading="lazy"><p class="rod-slogan">Construindo hoje, realizando o amanhã.</p></div>
     <div class="rod-cols">
-      <div><h4>Navegue</h4><a href="#sobre">Sobre</a><a href="#servicos">Serviços</a><a href="#obras">Obras</a><a href="#como-funciona">Como funciona</a><a href="#perguntas">Perguntas frequentes</a></div>
+      <div><h4>Navegue</h4><a href="#sobre">Sobre</a><a href="#servicos">Serviços</a><a href="#projeto-3d">Projeto em 3D</a><a href="#obras">Obras</a><a href="#como-funciona">Como funciona</a><a href="#perguntas">Perguntas frequentes</a></div>
       <div><h4>Clientes</h4><a href="acompanhar.php">Acompanhe sua obra</a><a href="#contato">Pedir orçamento</a><a href="painel/">Acesso da equipe</a></div>
       <div><h4>Contatos</h4><a href="https://wa.me/5561994408678" target="_blank" rel="noopener">Kauan · 61 99440-8678</a><a href="https://wa.me/5561999382439" target="_blank" rel="noopener">David · 61 99938-2439</a><a href="mailto:fariasaraujo.construcoes@gmail.com">fariasaraujo.construcoes@gmail.com</a></div>
       <div><h4>Redes sociais</h4><a href="https://www.instagram.com/obras_contrucoes.fariasaraujo/" target="_blank" rel="noopener">Instagram @obras_contrucoes.fariasaraujo</a><p>Atendemos Brasília e entorno.</p></div>
@@ -311,6 +344,6 @@
 <a class="zap-flutua" href="https://wa.me/5561994408678?text=Ol%C3%A1!%20Vim%20pelo%20site%20e%20quero%20um%20or%C3%A7amento." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1112 20a8 8 0 01-4.1-1.1z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.6-2-1-1 .9a3.5 3.5 0 01-1.8-1.8l.9-1-1-2z"/></svg><span>Fale com a gente</span></a>
 <button type="button" class="subir" aria-label="Voltar ao topo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
 
-<script src="assets/js/site.js?v=6" defer></script>
+<script src="assets/js/site.js?v=7" defer></script>
 </body>
 </html>

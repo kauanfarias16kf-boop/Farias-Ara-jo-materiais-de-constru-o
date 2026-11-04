@@ -125,6 +125,26 @@
   $('#ver-fechar').addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
 
+  /* ---------- projeto em 3D (carrega só quando chega perto) ---------- */
+  const p3d = $('.p3d');
+  if (p3d) {
+    const poster = $('.p3d-poster', p3d);
+    const reserva = () => {
+      // sem 3D no aparelho: as abas trocam a ilustração pronta
+      $$('[data-obra]', p3d).forEach(a => a.addEventListener('click', () => {
+        $$('[data-obra]', p3d).forEach(b => b.setAttribute('aria-pressed', String(b === a)));
+        $$('[data-txt-obra]', p3d).forEach(t => (t.hidden = t.dataset.txtObra !== a.dataset.obra));
+        poster.src = 'assets/img/3d/3d-' + a.dataset.obra + '-p.webp';
+        poster.alt = a.dataset.obra === 'casa' ? 'Ilustração 3D de uma casa pré moldada pronta' : 'Ilustração 3D de um galpão pré moldado pronto';
+      }));
+    };
+    new IntersectionObserver((es, o) => {
+      if (!es[0].isIntersecting) return;
+      o.disconnect();
+      import('./projeto3d.js?v=3').then(m => { if (!m.iniciaProjeto3D(p3d)) reserva(); }).catch(reserva);
+    }, { rootMargin: '400px 0px' }).observe(p3d);
+  }
+
   /* ---------- formulário de orçamento ---------- */
   const form = $('#form-orc');
   const secOrc = $('#contato');
